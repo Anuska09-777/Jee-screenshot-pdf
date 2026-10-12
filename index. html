@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JEE Hardcopy - Final</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+body{font-family:Arial;max-width:600px;margin:0 auto;padding:14px;background:#eef1ff}
+.main{background:#fff;padding:18px;border-radius:16px}
+h1{margin:0 0 6px;font-size:20px}
+.up{border:2px dashed #6c5cff;padding:20px;text-align:center;border-radius:12px;background:#f7f5ff}
+.btn{width:100%;padding:13px;background:#6c5cff;color:#fff;border:0;border-radius:10px;font-weight:bold;margin-top:10px}
+.q{border-bottom:1px solid #ddd;padding:10px 0;font-size:13px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="main">
+<h1>JEE Hardcopy Maker</h1>
+<p style="font-size:12px;color:#666">Tomar deya chobir moto clean PDF banabe</p>
+<div class="up" onclick="document.getElementById('f').click()">📸 Screenshot Select</div>
+<input id="f" type="file" multiple accept="image/*" hidden>
+<div id="log" style="font-size:12px;margin-top:10px">Ready</div>
+<div id="list"></div>
+<button class="btn" onclick="createPDF()">📄 PDF Banao - Hardcopy Style</button>
+</div>
+<script>
+let qs=[];
+document.getElementById('f').onchange=async e=>{
+  document.getElementById('log').innerText='OCR cholche...';
+  for(let file of e.target.files){
+    let r=await Tesseract.recognize(file,'eng');
+    qs.push(r.data.text.trim());
+  }
+  show();
+};
+function show(){
+  let l=document.getElementById('list');l.innerHTML='';
+  qs.forEach((t,i)=>{
+    let d=document.createElement('div');d.className='q';
+    d.innerHTML='<b>'+(18+i)+'. [JEE 2024 Q'+(52+i)+']</b><br>'+t;
+    l.appendChild(d);
+  });
+  document.getElementById('log').innerText=qs.length+' ta ready';
+}
+async function createPDF(){
+  if(!qs.length){alert('Age screenshot dao');return;}
+  let {jsPDF}=window.jspdf;let pdf=new jsPDF('p','mm','a4');let y=15;
+  for(let i=0;i<qs.length;i++){
+    let tag=(18+i)+'. [JEE 2024 Q'+(52+i)+']';
+    let lines=pdf.splitTextToSize(tag+'\n'+qs[i],180);
+    if(y+lines.length*6>285){pdf.addPage();y=15;}
+    pdf.setFont('helvetica','bold');pdf.text(tag,10,y);y+=6;
+    pdf.setFont('helvetica','normal');
+    let tLines=pdf.splitTextToSize(qs[i],180);
+    pdf.text(tLines,10,y);y+=tLines.length*6+4;
+    pdf.line(10,y,200,y);y+=6;
+  }
+  pdf.save('JEE_Hardcopy.pdf');
+}
+</script>
+</body>
+</html>
